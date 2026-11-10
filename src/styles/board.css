@@ -1,0 +1,83 @@
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.hud {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  max-width: 420px;
+  width: 100%;
+}
+
+.board--completed {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.card {
+  aspect-ratio: 3 / 4;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  perspective: 600px;
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+.card__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.35s ease;
+  transform-style: preserve-3d;
+}
+
+.card--revealed .card__inner,
+.card--matched .card__inner {
+  transform: rotateY(180deg);
+}
+
+.card__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  backface-visibility: hidden;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card__face--back {
+  background: #3d2b1f;
+  color: #f5c542;
+}
+
+.card__face--front {
+  background: #f5e6c8;
+  color: #3d2b1f;
+  transform: rotateY(180deg);
+}
+
+.card--matched .card__face--front {
+  background: #c8e6c9;
+}
+
+.completion {
+  text-align: center;
+}
