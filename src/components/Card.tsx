@@ -7,6 +7,8 @@ interface CardProps {
 }
 
 export const Card: Component<CardProps> = (props) => {
+  const frontSrc = () => `/cards/img-test${props.card.pairId}.png`;
+
   return (
     <button
       type="button"
@@ -16,8 +18,12 @@ export const Card: Component<CardProps> = (props) => {
       aria-label={`Card ${props.card.pairId}`}
     >
       <div class="card__inner">
-        <div class="card__face card__face--back">?</div>
-        <div class="card__face card__face--front">{props.card.pairId}</div>
+        <div class="card__face card__face--back">
+          <img src="/cards/back-1-test.png" alt="" draggable="false" />
+        </div>
+        <div class="card__face card__face--front">
+          <img src={frontSrc()} alt="" draggable="false" />
+        </div>
       </div>
     </button>
   );

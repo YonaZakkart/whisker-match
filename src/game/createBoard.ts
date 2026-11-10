@@ -1,16 +1,12 @@
 import type { Card, PairId } from "./types";
 
-/**
- * Creates a shuffled board of cards.
- * @param pairCount Number of unique pairs (total cards = pairCount * 2)
- * @param pairIds Optional custom pair identifiers. Defaults to "0", "1", ...
- */
 export function createBoard(pairCount: number, pairIds?: PairId[]): Card[] {
   if (pairCount < 1) {
     throw new Error("pairCount must be at least 1");
   }
 
-  const ids = pairIds ?? Array.from({ length: pairCount }, (_, i) => String(i));
+  // Default pairIds become "1", "2", ... so they map cleanly to img-test1.png etc.
+  const ids = pairIds ?? Array.from({ length: pairCount }, (_, i) => String(i + 1));
 
   if (ids.length !== pairCount) {
     throw new Error("pairIds length must match pairCount");
