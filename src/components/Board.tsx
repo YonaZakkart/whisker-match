@@ -8,16 +8,6 @@ export const Board: Component = () => {
 
   return (
     <div class="board-wrapper">
-      <header class="hud">
-        <span>Moves: {state.moves}</span>
-        <span>
-          Pairs: {state.matchedPairs}/{state.totalPairs}
-        </span>
-        <button type="button" onClick={reset}>
-          Reset
-        </button>
-      </header>
-
       <div
         class="board"
         classList={{ "board--completed": state.phase === "completed" }}
@@ -25,6 +15,14 @@ export const Board: Component = () => {
         <For each={state.cards}>
           {(card) => <Card card={card} onSelect={selectCard} />}
         </For>
+      </div>
+
+      <div class="hud">
+        <span>Moves: {state.moves}</span>
+        <span>Pairs: {state.matchedPairs}/{state.totalPairs}</span>
+        <button type="button" onClick={reset}>
+          Reset
+        </button>
       </div>
 
       {state.phase === "completed" && (
