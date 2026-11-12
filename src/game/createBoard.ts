@@ -1,15 +1,29 @@
 import type { Card, PairId } from "./types";
 
-export function createBoard(pairCount: number, pairIds?: PairId[]): Card[] {
-  if (pairCount < 1) {
-    throw new Error("pairCount must be at least 1");
+/**
+ * Builds a shuffled board with two cards per pair.
+ *
+ * `random` is injectable so tests (and future daily boards) can use a
+ * deterministic source of randomness.
+ */
+export function createBoard(
+  pairCount: number,
+  pairIds?: PairId[],
+  random: () => number = Math.random,
+): Card[] {
+  if (!Number.isInteger(pairCount) || pairCount < 1) {
+    throw new Error("pairCount must be a positive integer");
   }
 
-  // Default pairIds become "1", "2", ... so they map cleanly to img-test1.png etc.
+  // Default pairIds become "1", "2", ... so they map cleanly to the catalog.
   const ids = pairIds ?? Array.from({ length: pairCount }, (_, i) => String(i + 1));
 
   if (ids.length !== pairCount) {
     throw new Error("pairIds length must match pairCount");
+  }
+
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("pairIds must be unique");
   }
 
   const cards: Card[] = [];
@@ -21,14 +35,16 @@ export function createBoard(pairCount: number, pairIds?: PairId[]): Card[] {
     );
   }
 
-  return shuffle(cards);
+  return shuffle(cards, random);
 }
 
-function shuffle<T>(array: T[]): T[] {
+function shuffle<T>(array: T[], random: () => number): T[] {
   const result = [...array];
+
   for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
+
   return result;
 }

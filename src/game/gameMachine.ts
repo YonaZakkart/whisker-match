@@ -1,8 +1,11 @@
-import type { Card, CardId, GameAction, GameState } from "./types";
+import { getDefaultPairIds } from "./catalog";
 import { createBoard } from "./createBoard";
+import type { Card, CardId, GameAction, GameState, PairId } from "./types";
 
-export function createInitialState(pairCount = 8): GameState {
-  const cards = createBoard(pairCount);
+export function createInitialState(pairCount = 6, pairIds?: PairId[]): GameState {
+  const ids = pairIds ?? getDefaultPairIds(pairCount);
+  const cards = createBoard(pairCount, ids);
+
   return {
     cards,
     phase: "idle",
@@ -20,10 +23,14 @@ export function reduce(state: GameState, action: GameAction): GameState {
     case "RESOLVE_MISMATCH":
       return resolveMismatch(state);
     case "RESET":
-      return createInitialState(state.totalPairs);
+      return createInitialState(state.totalPairs, getPairIds(state));
     default:
       return state;
   }
+}
+
+function getPairIds(state: GameState): PairId[] {
+  return [...new Set(state.cards.map((card) => card.pairId))];
 }
 
 function selectCard(state: GameState, cardId: CardId): GameState {
@@ -100,9 +107,7 @@ function resolveMismatch(state: GameState): GameState {
 }
 
 function revealCard(cards: Card[], cardId: CardId): Card[] {
-  return cards.map((card) =>
-    card.id === cardId ? { ...card, state: "revealed" as const } : card,
-  );
+  return cards.map((card) => (card.id === cardId ? { ...card, state: "revealed" as const } : card));
 }
 
 function markMatched(cards: Card[], ids: CardId[]): Card[] {

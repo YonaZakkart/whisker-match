@@ -1,30 +1,50 @@
+import { CARD_BACK_IMAGE, type CardId, type Card as CardType, getCatCard } from "@/game";
 import type { Component } from "solid-js";
-import type { Card as CardType } from "@/game";
 
 interface CardProps {
   card: CardType;
-  onSelect: (id: string) => void;
+  interactive: boolean;
+  onSelect: (id: CardId) => void;
 }
 
 export const Card: Component<CardProps> = (props) => {
-  const frontSrc = () => `/cards/img-test${props.card.pairId}.png`;
+  const cat = () => getCatCard(props.card.pairId);
+  const isHidden = () => props.card.state === "hidden";
+  const isRevealed = () => props.card.state === "revealed";
+  const isMatched = () => props.card.state === "matched";
+
+  const label = () => {
+    if (isHidden()) return "Face-down card";
+
+    const name = cat()?.name ?? "Cat";
+    return isMatched() ? `${name}, matched` : `${name} card`;
+  };
 
   return (
     <button
       type="button"
-      class={`card card--${props.card.state}`}
-      disabled={props.card.state !== "hidden"}
+      class="card"
+      classList={{
+        "card--hidden": isHidden(),
+        "card--revealed": isRevealed(),
+        "card--matched": isMatched(),
+      }}
+      disabled={!props.interactive || !isHidden()}
+      aria-label={label()}
       onClick={() => props.onSelect(props.card.id)}
-      aria-label={`Card ${props.card.pairId}`}
     >
-      <div class="card__inner">
-        <div class="card__face card__face--back">
-          <img src="/cards/back-1-test.png" alt="" draggable="false" />
-        </div>
-        <div class="card__face card__face--front">
-          <img src={frontSrc()} alt="" draggable="false" />
-        </div>
-      </div>
+      <span class="card__inner">
+        <span class="card__face card__face--back" aria-hidden="true">
+          <img src={CARD_BACK_IMAGE} alt="" draggable={false} />
+        </span>
+
+        <span class="card__face card__face--front" aria-hidden="true">
+          <span class="card__art">
+            <img src={cat()?.image ?? CARD_BACK_IMAGE} alt="" draggable={false} />
+          </span>
+          <span class="card__name">{cat()?.name ?? "Mystery cat"}</span>
+        </span>
+      </span>
     </button>
   );
 };
