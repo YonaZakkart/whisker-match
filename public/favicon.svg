@@ -1,4 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="4" fill="#f5c542"/>
-  <text x="16" y="22" text-anchor="middle" font-size="18" font-family="system-ui,sans-serif">🐱</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#18181B" />
+  <!-- Orejas y cabeza -->
+  <path d="M16 28L18 14L28 21C30.6 20.4 33.4 20.4 36 21L46 14L48 28C50 31.2 51 35 51 39C51 47.8 42.5 53 32 53C21.5 53 13 47.8 13 39C13 35 14 31.2 16 28Z" fill="#FBBF24" />
+  <!-- Ojos -->
+  <circle cx="25" cy="35" r="2.8" fill="#18181B" />
+  <circle cx="39" cy="35" r="2.8" fill="#18181B" />
+  <!-- Nariz -->
+  <path d="M29.5 40.5H34.5L32 43.5L29.5 40.5Z" fill="#18181B" />
+  <!-- Bigotes -->
+  <path d="M10 38H20M11 43H20M44 38H54M44 43H53" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round" />
 </svg>
