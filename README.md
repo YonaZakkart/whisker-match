@@ -1,13 +1,27 @@
-# Whisker Match
+<p align="center">
+  <img src="assets/whisker-match-banner.svg" alt="Whisker Match: a pixel cat memory game" width="100%" />
+</p>
 
-A browser-based memory game built around collectible cat artwork, with a retro
-pixel-art style and a warm wooden table.
+<p align="center">
+  A browser-based memory game built around collectible cat artwork, with a retro pixel-art
+  style and a warm wooden table.
+</p>
 
-**Status:** Playable local MVP
+<p align="center">
+  <a href="https://whisker-match.vercel.app/">
+    <img src="assets/demo-button.svg" alt="Play the Whisker Match demo" width="300" />
+  </a>
+</p>
+
+**Status:** Playable local MVP, under active development. Features, artwork, and save formats
+may change between updates.
 
 ## Demo
 
-The public demo link will be added here once the first deployment is live.
+Play the live demo at **[whisker-match.vercel.app](https://whisker-match.vercel.app/)**.
+
+The game runs entirely in the browser and keeps progress in `localStorage`; no account or
+backend is required.
 
 ## Features
 
@@ -57,12 +71,14 @@ Open the URL printed by Vite, usually `http://localhost:5173`.
 ## Project structure
 
 ```
+assets/           # README banner and demo button artwork
 public/
   cards/
     cats/         # Playable cat artwork
     backs/        # Selectable card backs
   backgrounds/
     <pack-id>/    # One image per time period
+  og/             # Social preview image
 src/
   content/        # Card, card-back, and background catalogs
   game/           # Pure game logic, board sizes, and rules
@@ -132,4 +148,13 @@ deployment workflow must publish `dist/`.
 
 ## License
 
-License policy is being finalized before the repository becomes public.
+The source code is released under the [MIT License](LICENSE).
+
+The cat artwork in `public/cards/cats/` is pixel-art adaptations of internet memes. It is
+not covered by the MIT License, and the rights belong to their original creators. It is
+included here for demonstration purposes only. If you are a rights holder and want a piece
+removed, open an issue and it will be taken down.
+
+The same terms apply to the card back artwork in `public/cards/backs/`: it is not covered by
+the MIT License, the rights belong to its original creators, and it is included for
+demonstration purposes only.
