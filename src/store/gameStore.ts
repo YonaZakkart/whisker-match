@@ -1,4 +1,17 @@
 import {
+  type BackgroundPackId,
+  type CardBackId,
+  DEFAULT_BACKGROUND_PACK_ID,
+  DEFAULT_CARD_BACK_ID,
+  type TimePeriod,
+  getBackgroundImage,
+  getCardBack,
+  getTimePeriod,
+  isBackgroundPackId,
+  isCardBackId,
+  isTimePeriod,
+} from "@/content";
+import {
   type CardId,
   DIFFICULTIES,
   type DifficultyId,
@@ -15,7 +28,7 @@ import { type PersistedData, type PersistedGame, STORAGE_VERSION } from "@/persi
 import { createSignal } from "solid-js";
 import { createStore, reconcile, unwrap } from "solid-js/store";
 
-export type Screen = "menu" | "game";
+export type Screen = "menu" | "game" | "options";
 
 export interface GameResult {
   difficulty: DifficultyId;
@@ -31,6 +44,12 @@ const initialActiveGame = loaded.activeGame;
 
 const [screen, setScreen] = createSignal<Screen>("menu");
 const [difficulty, setDifficulty] = createSignal<DifficultyId>(initialDifficulty);
+const [cardBackId, setCardBackId] = createSignal<CardBackId>(
+  loaded.settings.cardBackId ?? DEFAULT_CARD_BACK_ID,
+);
+const [backgroundPackId, setBackgroundPackId] = createSignal<BackgroundPackId>(
+  loaded.settings.backgroundPackId ?? DEFAULT_BACKGROUND_PACK_ID,
+);
 const [stats, setStats] = createStore(loaded.stats);
 const [savedGame, setSavedGame] = createSignal<PersistedGame | null>(initialActiveGame);
 const [game, setGame] = createStore<GameState>(
@@ -43,6 +62,9 @@ const [game, setGame] = createStore<GameState>(
 const [elapsedMs, setElapsedMs] = createSignal(initialActiveGame?.elapsedMs ?? 0);
 const [lastResult, setLastResult] = createSignal<GameResult | null>(null);
 
+const [currentTimePeriod, setCurrentTimePeriod] = createSignal<TimePeriod>(getTimePeriod());
+const [timePeriodOverride, setTimePeriodOverride] = createSignal<TimePeriod | null>(null);
+
 let timerId: number | null = null;
 let timerBase = 0;
 let timerStartedAt = 0;
@@ -54,6 +76,22 @@ function currentDifficultyConfig() {
 
 function hasSavedGame() {
   return savedGame() !== null;
+}
+
+function activeTimePeriod() {
+  return timePeriodOverride() ?? currentTimePeriod();
+}
+
+function backgroundImage() {
+  return getBackgroundImage(backgroundPackId(), activeTimePeriod());
+}
+
+function currentCardBack() {
+  return getCardBack(cardBackId());
+}
+
+function refreshTimePeriod() {
+  setCurrentTimePeriod(getTimePeriod());
 }
 
 function readElapsed(): number {
@@ -88,7 +126,11 @@ function clearResolveTimer() {
 function buildData(activeGame: PersistedGame | null): PersistedData {
   return {
     version: STORAGE_VERSION,
-    settings: { difficulty: difficulty() },
+    settings: {
+      difficulty: difficulty(),
+      cardBackId: cardBackId(),
+      backgroundPackId: backgroundPackId(),
+    },
     stats: unwrap(stats),
     activeGame,
   };
@@ -234,11 +276,39 @@ function goToMenu() {
   setScreen("menu");
 }
 
+function goToOptions() {
+  setScreen("options");
+}
+
 function selectDifficulty(nextDifficulty: DifficultyId) {
   if (!isDifficultyId(nextDifficulty) || nextDifficulty === difficulty()) return;
 
   setDifficulty(nextDifficulty);
   persistSettingsAndStats();
+}
+
+function selectCardBack(nextCardBackId: CardBackId) {
+  if (!isCardBackId(nextCardBackId) || nextCardBackId === cardBackId()) return;
+
+  setCardBackId(nextCardBackId);
+  persistSettingsAndStats();
+}
+
+function selectBackgroundPack(nextPackId: BackgroundPackId) {
+  if (!isBackgroundPackId(nextPackId) || nextPackId === backgroundPackId()) return;
+
+  setBackgroundPackId(nextPackId);
+  persistSettingsAndStats();
+}
+
+/**
+ * Sets a temporary time-of-day preview. Passing `null` returns to "Auto",
+ * which follows the user's clock again.
+ */
+function selectTimePeriod(nextPeriod: TimePeriod | null) {
+  if (nextPeriod !== null && !isTimePeriod(nextPeriod)) return;
+
+  setTimePeriodOverride(nextPeriod);
 }
 
 if (typeof window !== "undefined") {
@@ -259,11 +329,23 @@ export const gameStore = {
   elapsedMs,
   lastResult,
   savedGame,
+  cardBackId,
+  cardBack: currentCardBack,
+  backgroundPackId,
+  activeTimePeriod,
+  backgroundImage,
+  timePeriodOverride,
+  currentTimePeriod,
   hasSavedGame,
+  refreshTimePeriod,
   startGame,
   continueGame,
   selectCard,
   restartGame,
   goToMenu,
+  goToOptions,
   selectDifficulty,
+  selectCardBack,
+  selectBackgroundPack,
+  selectTimePeriod,
 };

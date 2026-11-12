@@ -1,8 +1,8 @@
+import { Board } from "@/components/game/Board";
 import { gameStore } from "@/store/gameStore";
 import { formatDuration } from "@/utils/format";
 import type { Component } from "solid-js";
 import { Show, createEffect } from "solid-js";
-import { Board } from "./Board";
 
 export const GameScreen: Component = () => {
   const state = gameStore.game;
@@ -73,6 +73,7 @@ export const GameScreen: Component = () => {
         <Board
           cards={state.cards}
           columns={config().columns}
+          cardBackImage={gameStore.cardBack().image}
           interactive={state.phase !== "resolving" && state.phase !== "completed"}
           resolving={state.phase === "resolving"}
           onSelect={gameStore.selectCard}

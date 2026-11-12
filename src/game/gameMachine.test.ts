@@ -1,3 +1,4 @@
+import { getCatCard } from "@/content";
 import { describe, expect, it } from "vitest";
 import { createInitialState, reduce } from "./gameMachine";
 import type { Card, CardId, PairId } from "./types";
@@ -34,6 +35,15 @@ describe("memory game rules", () => {
     expect(state.matchedPairs).toBe(0);
     expect(state.cards).toHaveLength(4);
     expect(state.cards.every((card) => card.state === "hidden")).toBe(true);
+  });
+
+  it("creates a random board from the card catalog by default", () => {
+    const state = createInitialState(3, undefined, () => 0.5);
+    const pairIds = new Set(state.cards.map((card) => card.pairId));
+
+    expect(state.cards).toHaveLength(6);
+    expect(pairIds.size).toBe(3);
+    expect([...pairIds].every((pairId) => getCatCard(pairId) !== undefined)).toBe(true);
   });
 
   it("completes a matching move and keeps the pair face-up", () => {

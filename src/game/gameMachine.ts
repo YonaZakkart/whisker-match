@@ -1,10 +1,14 @@
-import { getDefaultPairIds } from "./catalog";
+import { selectRandomPairIds } from "@/content/cards";
 import { createBoard } from "./createBoard";
 import type { Card, CardId, GameAction, GameState, PairId } from "./types";
 
-export function createInitialState(pairCount = 6, pairIds?: PairId[]): GameState {
-  const ids = pairIds ?? getDefaultPairIds(pairCount);
-  const cards = createBoard(pairCount, ids);
+export function createInitialState(
+  pairCount = 6,
+  pairIds?: PairId[],
+  random: () => number = Math.random,
+): GameState {
+  const ids = pairIds ?? selectRandomPairIds(pairCount, random);
+  const cards = createBoard(pairCount, ids, random);
 
   return {
     cards,
