@@ -1,4 +1,10 @@
 import {
+  DEFAULT_BACKGROUND_PACK_ID,
+  DEFAULT_CARD_BACK_ID,
+  isBackgroundPackId,
+  isCardBackId,
+} from "@/content";
+import {
   type CardState,
   DIFFICULTY_IDS,
   type DifficultyId,
@@ -24,7 +30,11 @@ export function createDefaultData(difficulty: DifficultyId = "classic"): Persist
 
   return {
     version: STORAGE_VERSION,
-    settings: { difficulty },
+    settings: {
+      difficulty,
+      cardBackId: DEFAULT_CARD_BACK_ID,
+      backgroundPackId: DEFAULT_BACKGROUND_PACK_ID,
+    },
     stats,
     activeGame: null,
   };
@@ -78,19 +88,28 @@ function getStorage(): Storage | null {
 }
 
 function parsePersistedData(value: unknown): PersistedData | null {
-  if (!isRecord(value) || value.version !== STORAGE_VERSION) {
+  // Version 1 only stored the difficulty. Migrate it in place instead of
+  // throwing away the player's records.
+  if (!isRecord(value) || (value.version !== 1 && value.version !== STORAGE_VERSION)) {
     return null;
   }
 
   const defaults = createDefaultData();
-  const difficulty =
-    isRecord(value.settings) && isDifficultyId(value.settings.difficulty)
-      ? value.settings.difficulty
-      : defaults.settings.difficulty;
+  const settings = isRecord(value.settings) ? value.settings : {};
 
   return {
     version: STORAGE_VERSION,
-    settings: { difficulty },
+    settings: {
+      difficulty: isDifficultyId(settings.difficulty)
+        ? settings.difficulty
+        : defaults.settings.difficulty,
+      cardBackId: isCardBackId(settings.cardBackId)
+        ? settings.cardBackId
+        : defaults.settings.cardBackId,
+      backgroundPackId: isBackgroundPackId(settings.backgroundPackId)
+        ? settings.backgroundPackId
+        : defaults.settings.backgroundPackId,
+    },
     stats: parseStats(value.stats, defaults.stats),
     activeGame: parseActiveGame(value.activeGame),
   };

@@ -1,8 +1,10 @@
-import { CARD_BACK_IMAGE, type CardId, type Card as CardType, getCatCard } from "@/game";
+import { getCatCard } from "@/content";
+import type { CardId, Card as CardType } from "@/game";
 import type { Component } from "solid-js";
 
 interface CardProps {
   card: CardType;
+  cardBackImage: string;
   interactive: boolean;
   onSelect: (id: CardId) => void;
 }
@@ -35,14 +37,16 @@ export const Card: Component<CardProps> = (props) => {
     >
       <span class="card__inner">
         <span class="card__face card__face--back" aria-hidden="true">
-          <img src={CARD_BACK_IMAGE} alt="" draggable={false} />
+          <img src={props.cardBackImage} alt="" draggable={false} />
         </span>
 
         <span class="card__face card__face--front" aria-hidden="true">
           <span class="card__art">
-            <img src={cat()?.image ?? CARD_BACK_IMAGE} alt="" draggable={false} />
+            <img src={cat()?.image} alt="" draggable={false} />
           </span>
-          <span class="card__name">{cat()?.name ?? "Mystery cat"}</span>
+          <span class="card__name">
+            <span class="card__name-text">{cat()?.name ?? "Mystery cat"}</span>
+          </span>
         </span>
       </span>
     </button>

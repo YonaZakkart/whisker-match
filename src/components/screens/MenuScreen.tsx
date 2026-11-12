@@ -65,6 +65,14 @@ export const MenuScreen: Component = () => {
           {gameStore.hasSavedGame() ? "Start new game" : "Play"}
         </button>
 
+        <button
+          class="pixel-button pixel-button--ghost pixel-button--wide"
+          type="button"
+          onClick={() => gameStore.goToOptions()}
+        >
+          Options
+        </button>
+
         <Show when={gameStore.hasSavedGame()}>
           <p class="menu__warning">Starting a new board replaces your saved game.</p>
         </Show>

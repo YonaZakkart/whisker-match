@@ -6,6 +6,7 @@ import { Card } from "./Card";
 interface BoardProps {
   cards: CardType[];
   columns: number;
+  cardBackImage: string;
   interactive: boolean;
   resolving: boolean;
   onSelect: (id: CardId) => void;
@@ -18,7 +19,14 @@ export const Board: Component<BoardProps> = (props) => {
       classList={{ "board--resolving": props.resolving }}
     >
       <For each={props.cards}>
-        {(card) => <Card card={card} interactive={props.interactive} onSelect={props.onSelect} />}
+        {(card) => (
+          <Card
+            card={card}
+            cardBackImage={props.cardBackImage}
+            interactive={props.interactive}
+            onSelect={props.onSelect}
+          />
+        )}
       </For>
     </div>
   );
