@@ -1,7 +1,7 @@
 import { getCatCard } from "@/content";
 import { describe, expect, it } from "vitest";
 import { createInitialState, reduce } from "./gameMachine";
-import type { Card, CardId, PairId } from "./types";
+import type { Card, CardId, GameState, PairId } from "./types";
 
 function cardByPair(cards: Card[], pairId: PairId, index = 0): Card {
   const pair = cards.filter((card) => card.pairId === pairId);
@@ -92,6 +92,40 @@ describe("memory game rules", () => {
     const afterFirst = reduce(state, { type: "SELECT_CARD", cardId: first.id });
 
     expect(reduce(afterFirst, { type: "SELECT_CARD", cardId: first.id })).toBe(afterFirst);
+  });
+
+  it("recovers when the selected card is missing from an inconsistent state", () => {
+    const state = createInitialState(2, ["1", "2"]);
+    const broken: GameState = {
+      ...state,
+      phase: "oneSelected",
+      selectedIds: ["missing-card"],
+    };
+    const target = firstHiddenCard(broken.cards);
+
+    const recovered = reduce(broken, { type: "SELECT_CARD", cardId: target.id });
+
+    expect(recovered.phase).toBe("oneSelected");
+    expect(recovered.selectedIds).toEqual([target.id]);
+    expect(recovered.moves).toBe(0);
+    expect(recovered.cards.find((card) => card.id === target.id)?.state).toBe("revealed");
+  });
+
+  it("recovers when the selected card is not face-up", () => {
+    const state = createInitialState(2, ["1", "2"]);
+    const stale = state.cards[0];
+    const broken: GameState = {
+      ...state,
+      phase: "oneSelected",
+      selectedIds: [stale.id],
+    };
+    const target = firstHiddenCard(broken.cards, [stale.id]);
+
+    const recovered = reduce(broken, { type: "SELECT_CARD", cardId: target.id });
+
+    expect(recovered.phase).toBe("oneSelected");
+    expect(recovered.selectedIds).toEqual([target.id]);
+    expect(recovered.moves).toBe(0);
   });
 
   it("does not allow an already matched card to be selected", () => {

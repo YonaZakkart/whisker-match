@@ -35,6 +35,16 @@ describe("cat card catalog", () => {
     expect(first).toEqual(second);
   });
 
+  it("stays in range when the random source returns boundary values", () => {
+    for (const value of [1, -1, Number.NaN]) {
+      const ids = selectRandomPairIds(8, () => value);
+
+      expect(ids).toHaveLength(8);
+      expect(new Set(ids).size).toBe(8);
+      expect(ids.every((id) => getCatCard(id) !== undefined)).toBe(true);
+    }
+  });
+
   it("rejects invalid pair counts", () => {
     expect(() => selectRandomPairIds(0)).toThrow("pairCount must be a positive integer");
     expect(() => selectRandomPairIds(1.5)).toThrow("pairCount must be a positive integer");

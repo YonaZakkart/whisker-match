@@ -6,6 +6,7 @@ import {
 } from "@/content";
 import {
   type CardState,
+  DIFFICULTIES,
   DIFFICULTY_IDS,
   type DifficultyId,
   type GamePhase,
@@ -164,7 +165,13 @@ function parseActiveGame(value: unknown): PersistedGame | null {
   }
 
   const state = parseGameState(value.state);
-  if (!state) return null;
+
+  // A finished board is never persisted; a saved one is corrupt or stale.
+  if (!state || state.phase === "completed") return null;
+
+  if (state.totalPairs !== DIFFICULTIES[value.difficulty].pairs) {
+    return null;
+  }
 
   return {
     difficulty: value.difficulty,
@@ -183,7 +190,11 @@ function parseGameState(value: unknown): GameState | null {
     return null;
   }
 
-  if (!isNonNegativeInteger(value.matchedPairs) || value.matchedPairs > value.totalPairs) {
+  if (
+    !isNonNegativeInteger(value.matchedPairs) ||
+    value.matchedPairs > value.totalPairs ||
+    value.moves < value.matchedPairs
+  ) {
     return null;
   }
 
@@ -201,6 +212,9 @@ function parseGameState(value: unknown): GameState | null {
 
   const cards: GameState["cards"] = [];
   const cardIds = new Set<string>();
+  const pairCounts = new Map<string, number>();
+  let matchedCards = 0;
+  let revealedCards = 0;
 
   for (const rawCard of value.cards) {
     if (
@@ -214,6 +228,11 @@ function parseGameState(value: unknown): GameState | null {
     }
 
     cardIds.add(rawCard.id);
+    pairCounts.set(rawCard.pairId, (pairCounts.get(rawCard.pairId) ?? 0) + 1);
+
+    if (rawCard.state === "matched") matchedCards++;
+    if (rawCard.state === "revealed") revealedCards++;
+
     cards.push({
       id: rawCard.id,
       pairId: rawCard.pairId,
@@ -221,10 +240,52 @@ function parseGameState(value: unknown): GameState | null {
     });
   }
 
+  // Every pair must own exactly two cards, or the board can never be cleared.
+  if (pairCounts.size !== value.totalPairs) {
+    return null;
+  }
+
+  for (const count of pairCounts.values()) {
+    if (count !== 2) return null;
+  }
+
+  if (matchedCards !== value.matchedPairs * 2) {
+    return null;
+  }
+
+  const selectedIds = [...value.selectedIds];
+
+  if (new Set(selectedIds).size !== selectedIds.length) {
+    return null;
+  }
+
+  if (!selectedIds.every((id) => cardIds.has(id))) {
+    return null;
+  }
+
+  // The phase, the selection, and the face-up cards must agree.
+  const expectedSelected = value.phase === "oneSelected" ? 1 : value.phase === "resolving" ? 2 : 0;
+
+  if (selectedIds.length !== expectedSelected || revealedCards !== expectedSelected) {
+    return null;
+  }
+
+  const revealedIds = new Set(
+    cards.filter((card) => card.state === "revealed").map((card) => card.id),
+  );
+
+  if (selectedIds.length !== revealedIds.size || !selectedIds.every((id) => revealedIds.has(id))) {
+    return null;
+  }
+
+  if (value.phase === "completed" && value.matchedPairs !== value.totalPairs) {
+    return null;
+  }
+
   return {
     cards,
     phase: value.phase,
-    selectedIds: [...value.selectedIds],
+    selectedIds,
     moves: value.moves,
     matchedPairs: value.matchedPairs,
     totalPairs: value.totalPairs,
