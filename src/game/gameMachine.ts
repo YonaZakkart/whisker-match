@@ -63,7 +63,17 @@ function selectCard(state: GameState, cardId: CardId): GameState {
   // phase === "oneSelected" → second card
   const firstId = state.selectedIds[0];
   const firstCard = state.cards.find((c) => c.id === firstId);
-  if (!firstCard) return state;
+
+  // Recover from an inconsistent saved state instead of getting stuck: treat
+  // this click as the new first selection.
+  if (!firstCard || firstCard.state !== "revealed") {
+    return {
+      ...state,
+      cards: revealCard(state.cards, cardId),
+      phase: "oneSelected",
+      selectedIds: [cardId],
+    };
+  }
 
   const updatedCards = revealCard(state.cards, cardId);
   const secondCard = updatedCards.find((c) => c.id === cardId)!;
