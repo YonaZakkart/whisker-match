@@ -19,9 +19,11 @@ export const Board: Component<BoardProps> = (props) => {
       classList={{ "board--resolving": props.resolving }}
     >
       <For each={props.cards}>
-        {(card) => (
+        {(card, index) => (
           <Card
             card={card}
+            position={index() + 1}
+            total={props.cards.length}
             cardBackImage={props.cardBackImage}
             interactive={props.interactive}
             onSelect={props.onSelect}
