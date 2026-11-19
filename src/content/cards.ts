@@ -1,4 +1,5 @@
 import type { PairId } from "@/game/types";
+import { pickIndex } from "@/utils/random";
 
 export interface CatCard {
   pairId: PairId;
@@ -79,7 +80,7 @@ export function selectRandomPairIds(
 
   // Partial Fisher-Yates shuffle: only the first `pairCount` slots matter.
   for (let i = 0; i < pairCount; i++) {
-    const j = i + Math.floor(random() * (pool.length - i));
+    const j = i + pickIndex(random, pool.length - i);
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
 

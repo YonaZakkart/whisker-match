@@ -24,6 +24,15 @@ describe("createBoard", () => {
     expect(first.map((card) => card.id)).toEqual(second.map((card) => card.id));
   });
 
+  it("stays in range when the random source returns boundary values", () => {
+    for (const value of [1, -1, Number.NaN]) {
+      const board = createBoard(2, ["1", "2"], () => value);
+
+      expect(board).toHaveLength(4);
+      expect(board.every((card) => card !== undefined)).toBe(true);
+    }
+  });
+
   it("rejects an invalid pair count", () => {
     expect(() => createBoard(0)).toThrow("pairCount must be a positive integer");
     expect(() => createBoard(1.5)).toThrow("pairCount must be a positive integer");
