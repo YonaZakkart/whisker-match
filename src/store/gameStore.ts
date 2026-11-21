@@ -30,7 +30,7 @@ import { type PersistedData, type PersistedGame, STORAGE_VERSION } from "@/persi
 import { createSignal } from "solid-js";
 import { createStore, reconcile, unwrap } from "solid-js/store";
 
-export type Screen = "menu" | "game" | "options";
+export type Screen = "menu" | "game" | "options" | "collection";
 
 export interface GameResult {
   difficulty: DifficultyId;
@@ -292,6 +292,7 @@ function clearLastExchange() {
 
 function goToMenu() {
   clearResolveTimer();
+  clearLastExchange();
 
   if (screen() === "game" && game.phase !== "completed") {
     stopTimer();
@@ -301,6 +302,10 @@ function goToMenu() {
   }
 
   setScreen("menu");
+}
+
+function goToCollection() {
+  setScreen("collection");
 }
 
 function goToOptions() {
@@ -375,6 +380,7 @@ export const gameStore = {
   exchangePawprints,
   clearLastExchange,
   goToMenu,
+  goToCollection,
   goToOptions,
   selectDifficulty,
   selectCardBack,
