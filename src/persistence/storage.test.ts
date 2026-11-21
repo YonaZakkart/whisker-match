@@ -246,6 +246,30 @@ describe("local persistence", () => {
     expect(loadData().activeGame).toBeNull();
   });
 
+  it("rejects a resolving save whose selected cards are a matching pair", () => {
+    const state = createInitialState(3, ["1", "2", "3"]);
+    const pair = state.cards.filter((card) => card.pairId === "1");
+    const first = reduce(state, { type: "SELECT_CARD", cardId: pair[0].id });
+    const cards = first.cards.map((card) =>
+      card.id === pair[1].id ? { ...card, state: "revealed" as const } : card,
+    );
+
+    writeActiveGame({
+      difficulty: "relaxed",
+      state: {
+        ...first,
+        phase: "resolving",
+        selectedIds: [pair[0].id, pair[1].id],
+        cards,
+        moves: 1,
+      },
+      elapsedMs: 0,
+      savedAt: 0,
+    });
+
+    expect(loadData().activeGame).toBeNull();
+  });
+
   it("rejects active games whose matched count disagrees with the board", () => {
     const state = createInitialState(3, ["1", "2", "3"]);
 

@@ -98,8 +98,15 @@ describe("game store session flow", () => {
     expect(store.game.phase).toBe("completed");
     expect(store.stats.relaxed.gamesPlayed).toBe(1);
     expect(store.lastResult()?.moves).toBe(3);
+    expect(store.lastResult()?.isBestMoves).toBe(true);
+    expect(store.lastResult()?.isBestTime).toBe(true);
     expect(store.savedGame()).toBeNull();
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).activeGame).toBeNull();
+
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    expect(saved.activeGame).toBeNull();
+    expect(saved.stats.relaxed.gamesPlayed).toBe(1);
+    expect(saved.stats.relaxed.bestMoves).toBe(3);
+    expect(saved.stats.relaxed.bestTimeMs).not.toBeNull();
   });
 
   it("resumes a saved game and completes a pending mismatch", async () => {
