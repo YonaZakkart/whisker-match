@@ -28,6 +28,7 @@ describe("local persistence", () => {
       backgroundPackId: "whisker-den",
     });
     expect(data.activeGame).toBeNull();
+    expect(data.collection).toEqual({ ownedPairIds: [], pawprints: 0 });
     expect(data.stats.relaxed).toEqual({
       gamesPlayed: 0,
       bestMoves: null,
@@ -51,6 +52,7 @@ describe("local persistence", () => {
         classic: { gamesPlayed: 1, bestMoves: 4, bestTimeMs: 9_500 },
         marathon: { gamesPlayed: 2, bestMoves: 16, bestTimeMs: 64_000 },
       },
+      collection: { ownedPairIds: ["1", "3"], pawprints: 7 },
       activeGame: {
         difficulty: "relaxed",
         state,
@@ -100,6 +102,119 @@ describe("local persistence", () => {
     expect(data.stats.relaxed.gamesPlayed).toBe(2);
     expect(data.stats.classic.bestMoves).toBe(12);
     expect(data.stats.marathon.gamesPlayed).toBe(0);
+    expect(data.collection).toEqual({ ownedPairIds: [], pawprints: 0 });
+  });
+
+  it("migrates a version 2 save with records and an active game", () => {
+    const base = createDefaultData("relaxed");
+    const state = createInitialState(3, ["1", "2", "3"]);
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        settings: base.settings,
+        stats: base.stats,
+        activeGame: {
+          difficulty: "relaxed",
+          state,
+          elapsedMs: 1_500,
+          savedAt: 10,
+        },
+      }),
+    );
+
+    const data = loadData();
+
+    expect(data.version).toBe(STORAGE_VERSION);
+    expect(data.settings).toEqual(base.settings);
+    expect(data.stats).toEqual(base.stats);
+    expect(data.collection).toEqual({ ownedPairIds: [], pawprints: 0 });
+    expect(data.activeGame?.state).toEqual(state);
+  });
+
+  it("preserves unknown owned ids and round-trips the collection", () => {
+    const collection = { ownedPairIds: ["1", "99"], pawprints: 4 };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...createDefaultData(), collection }));
+
+    expect(loadData().collection).toEqual(collection);
+  });
+
+  it("falls back to an empty collection when the field is malformed", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createDefaultData("relaxed"),
+        collection: { ownedPairIds: "1,2", pawprints: 4 },
+        stats: {
+          relaxed: { gamesPlayed: 2, bestMoves: 10, bestTimeMs: 30_000 },
+          classic: { gamesPlayed: 0, bestMoves: null, bestTimeMs: null },
+          marathon: { gamesPlayed: 0, bestMoves: null, bestTimeMs: null },
+        },
+      }),
+    );
+
+    const data = loadData();
+
+    expect(data.collection).toEqual({ ownedPairIds: [], pawprints: 0 });
+    expect(data.settings.difficulty).toBe("relaxed");
+    expect(data.stats.relaxed.gamesPlayed).toBe(2);
+  });
+
+  it("rejects duplicate or empty owned ids", () => {
+    for (const ownedPairIds of [["1", "1"], [""], ["1", 2]]) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ ...createDefaultData(), collection: { ownedPairIds, pawprints: 4 } }),
+      );
+
+      expect(loadData().collection).toEqual({ ownedPairIds: [], pawprints: 0 });
+    }
+  });
+
+  it("caps the collection at 128 ids", () => {
+    const atLimit = Array.from({ length: 128 }, (_, index) => String(index + 1));
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createDefaultData(),
+        collection: { ownedPairIds: atLimit, pawprints: 0 },
+      }),
+    );
+    expect(loadData().collection.ownedPairIds).toHaveLength(128);
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createDefaultData(),
+        collection: { ownedPairIds: [...atLimit, "129"], pawprints: 0 },
+      }),
+    );
+    expect(loadData().collection).toEqual({ ownedPairIds: [], pawprints: 0 });
+  });
+
+  it("validates the pawprint range and type", () => {
+    for (const pawprints of [-1, 1.5, 1_000_000, "3"]) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          ...createDefaultData(),
+          collection: { ownedPairIds: ["1"], pawprints },
+        }),
+      );
+
+      expect(loadData().collection).toEqual({ ownedPairIds: ["1"], pawprints: 0 });
+    }
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createDefaultData(),
+        collection: { ownedPairIds: ["1"], pawprints: 999_999 },
+      }),
+    );
+    expect(loadData().collection.pawprints).toBe(999_999);
   });
 
   it("replaces unknown personalization ids with defaults", () => {
