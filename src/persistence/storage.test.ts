@@ -133,6 +133,38 @@ describe("local persistence", () => {
     expect(data.activeGame?.state).toEqual(state);
   });
 
+  it("migrates a version 2 save with a resolving active game", () => {
+    const base = createDefaultData("relaxed");
+    const state = createInitialState(3, ["1", "2", "3"]);
+    const first = state.cards[0];
+    const second = state.cards.find((card) => card.pairId !== first.pairId)!;
+    const afterFirst = reduce(state, { type: "SELECT_CARD", cardId: first.id });
+    const resolving = reduce(afterFirst, { type: "SELECT_CARD", cardId: second.id });
+
+    expect(resolving.phase).toBe("resolving");
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        settings: base.settings,
+        stats: base.stats,
+        activeGame: {
+          difficulty: "relaxed",
+          state: resolving,
+          elapsedMs: 2_000,
+          savedAt: 10,
+        },
+      }),
+    );
+
+    const data = loadData();
+
+    expect(data.version).toBe(STORAGE_VERSION);
+    expect(data.activeGame?.state).toEqual(resolving);
+    expect(data.collection).toEqual({ ownedPairIds: [], pawprints: 0 });
+  });
+
   it("preserves unknown owned ids and round-trips the collection", () => {
     const collection = { ownedPairIds: ["1", "99"], pawprints: 4 };
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...createDefaultData(), collection }));
