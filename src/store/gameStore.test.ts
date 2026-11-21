@@ -306,4 +306,20 @@ describe("game store session flow", () => {
     expect(store.exchangePawprints()).toBeNull();
     expect(store.collection()).toEqual({ ownedPairIds: CATALOG_IDS, pawprints: 3 });
   });
+
+  it("opens the collection screen and clears the exchange result on exit", async () => {
+    seedCollection({ ownedPairIds: ["1"], pawprints: 3 });
+
+    const store = await loadStore();
+    store.goToCollection();
+    expect(store.screen()).toBe("collection");
+
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    store.exchangePawprints();
+    expect(store.lastExchange()).not.toBeNull();
+
+    store.goToMenu();
+    expect(store.screen()).toBe("menu");
+    expect(store.lastExchange()).toBeNull();
+  });
 });
