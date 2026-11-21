@@ -132,6 +132,7 @@ function buildData(activeGame: PersistedGame | null): PersistedData {
       backgroundPackId: backgroundPackId(),
     },
     stats: unwrap(stats),
+    collection: loaded.collection,
     activeGame,
   };
 }
