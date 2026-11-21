@@ -1,4 +1,5 @@
 import { Board } from "@/components/game/Board";
+import { getCatCard } from "@/content";
 import { gameStore } from "@/store/gameStore";
 import { formatDuration } from "@/utils/format";
 import type { Component } from "solid-js";
@@ -101,6 +102,27 @@ export const GameScreen: Component = () => {
                           : "Saved to your records."}
                   </p>
                 )}
+              </Show>
+
+              <Show when={gameStore.lastReward()}>
+                {(reward) => {
+                  const card = getCatCard(reward().pairId);
+                  const isNew = reward().kind === "new-card";
+                  return (
+                    <div class="result__reward" aria-live="polite">
+                      <img
+                        class="result__reward-art"
+                        src={card?.image ?? ""}
+                        alt={card ? `${card.name}, ${isNew ? "new cat" : "duplicate"}` : ""}
+                        draggable={false}
+                      />
+                      <p class="result__reward-text">
+                        {isNew ? "New cat collected!" : "Duplicate → +1 Lost Pawprint"}
+                      </p>
+                      <p class="result__reward-name">{card?.name}</p>
+                    </div>
+                  );
+                }}
               </Show>
 
               <div class="result__actions">
