@@ -278,6 +278,18 @@ function parseGameState(value: unknown): GameState | null {
     return null;
   }
 
+  // A resolving state is a visible mismatch; two cards of one pair would have
+  // matched immediately and cannot be resolved.
+  if (value.phase === "resolving") {
+    const selectedPairIds = new Set(
+      cards.filter((card) => selectedIds.includes(card.id)).map((card) => card.pairId),
+    );
+
+    if (selectedPairIds.size !== 2) {
+      return null;
+    }
+  }
+
   if (value.phase === "completed" && value.matchedPairs !== value.totalPairs) {
     return null;
   }

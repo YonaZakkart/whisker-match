@@ -38,6 +38,7 @@ backend is required.
 - Safe `localStorage` persistence with schema versioning, validation, and v1 migration.
 - Continue an unfinished game after reloading the page.
 - Responsive layout for desktop, tablet, and mobile.
+- Cards stay focusable and announce their board position and state for assistive technology.
 - Pure, testable game logic with automated rule and persistence tests.
 
 ## Stack
@@ -87,7 +88,7 @@ src/
   components/
     screens/      # Menu, options, and game screens
     game/         # Board and card UI
-  utils/          # Formatting helpers
+  utils/          # Formatting and random-index helpers
   styles/         # Global pixel-art theme and responsive layout
 ```
 
