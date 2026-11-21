@@ -68,6 +68,14 @@ export const MenuScreen: Component = () => {
         <button
           class="pixel-button pixel-button--ghost pixel-button--wide"
           type="button"
+          onClick={() => gameStore.goToCollection()}
+        >
+          Collection
+        </button>
+
+        <button
+          class="pixel-button pixel-button--ghost pixel-button--wide"
+          type="button"
           onClick={() => gameStore.goToOptions()}
         >
           Options
