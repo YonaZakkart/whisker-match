@@ -1,3 +1,4 @@
+import { CollectionScreen } from "@/components/screens/CollectionScreen";
 import { GameScreen } from "@/components/screens/GameScreen";
 import { MenuScreen } from "@/components/screens/MenuScreen";
 import { OptionsScreen } from "@/components/screens/OptionsScreen";
@@ -36,6 +37,9 @@ export const App: Component = () => {
         </Match>
         <Match when={gameStore.screen() === "options"}>
           <OptionsScreen />
+        </Match>
+        <Match when={gameStore.screen() === "collection"}>
+          <CollectionScreen />
         </Match>
       </Switch>
     </main>

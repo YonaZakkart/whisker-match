@@ -1,5 +1,7 @@
+import { type CollectionState, type RewardEvent, exchange, rollReward } from "@/collection";
 import {
   type BackgroundPackId,
+  CAT_CARDS,
   type CardBackId,
   DEFAULT_BACKGROUND_PACK_ID,
   DEFAULT_CARD_BACK_ID,
@@ -28,7 +30,7 @@ import { type PersistedData, type PersistedGame, STORAGE_VERSION } from "@/persi
 import { createSignal } from "solid-js";
 import { createStore, reconcile, unwrap } from "solid-js/store";
 
-export type Screen = "menu" | "game" | "options";
+export type Screen = "menu" | "game" | "options" | "collection";
 
 export interface GameResult {
   difficulty: DifficultyId;
@@ -41,6 +43,7 @@ export interface GameResult {
 const loaded = loadData();
 const initialDifficulty = loaded.settings.difficulty;
 const initialActiveGame = loaded.activeGame;
+const CATALOG_PAIR_IDS = CAT_CARDS.map((card) => card.pairId);
 
 const [screen, setScreen] = createSignal<Screen>("menu");
 const [difficulty, setDifficulty] = createSignal<DifficultyId>(initialDifficulty);
@@ -51,6 +54,9 @@ const [backgroundPackId, setBackgroundPackId] = createSignal<BackgroundPackId>(
   loaded.settings.backgroundPackId ?? DEFAULT_BACKGROUND_PACK_ID,
 );
 const [stats, setStats] = createStore(loaded.stats);
+const [collection, setCollection] = createSignal<CollectionState>(loaded.collection);
+const [lastReward, setLastReward] = createSignal<RewardEvent | null>(null);
+const [lastExchange, setLastExchange] = createSignal<RewardEvent | null>(null);
 const [savedGame, setSavedGame] = createSignal<PersistedGame | null>(initialActiveGame);
 const [game, setGame] = createStore<GameState>(
   initialActiveGame?.state ??
@@ -132,6 +138,7 @@ function buildData(activeGame: PersistedGame | null): PersistedData {
       backgroundPackId: backgroundPackId(),
     },
     stats: unwrap(stats),
+    collection: collection(),
     activeGame,
   };
 }
@@ -178,8 +185,11 @@ function completeGame(finalState: GameState) {
 
   const finalElapsed = elapsedMs();
   const record = recordCompletedGame(stats[difficulty()], finalState.moves, finalElapsed);
+  const reward = rollReward(collection(), CATALOG_PAIR_IDS);
 
   setStats(difficulty(), record.stats);
+  setCollection(reward.collection);
+  setLastReward(reward);
   setLastResult({
     difficulty: difficulty(),
     moves: finalState.moves,
@@ -207,6 +217,7 @@ function startGame(nextDifficulty: DifficultyId = difficulty()) {
   setGame(reconcile(nextState));
   setElapsedMs(0);
   setLastResult(null);
+  setLastReward(null);
   setScreen("game");
   startTimer();
   persistActiveGame(nextState, 0);
@@ -228,6 +239,7 @@ function continueGame() {
   setGame(reconcile(saved.state));
   setElapsedMs(saved.elapsedMs);
   setLastResult(null);
+  setLastReward(null);
   setScreen("game");
   startTimer();
 
@@ -263,8 +275,24 @@ function restartGame() {
   startGame(difficulty());
 }
 
+function exchangePawprints(): RewardEvent | null {
+  const reward = exchange(collection(), CATALOG_PAIR_IDS);
+  if (!reward) return null;
+
+  setCollection(reward.collection);
+  setLastExchange(reward);
+  saveData(buildData(savedGame()));
+
+  return reward;
+}
+
+function clearLastExchange() {
+  setLastExchange(null);
+}
+
 function goToMenu() {
   clearResolveTimer();
+  clearLastExchange();
 
   if (screen() === "game" && game.phase !== "completed") {
     stopTimer();
@@ -274,6 +302,10 @@ function goToMenu() {
   }
 
   setScreen("menu");
+}
+
+function goToCollection() {
+  setScreen("collection");
 }
 
 function goToOptions() {
@@ -326,6 +358,9 @@ export const gameStore = {
   difficultyConfig: currentDifficultyConfig,
   game,
   stats,
+  collection,
+  lastReward,
+  lastExchange,
   elapsedMs,
   lastResult,
   savedGame,
@@ -342,7 +377,10 @@ export const gameStore = {
   continueGame,
   selectCard,
   restartGame,
+  exchangePawprints,
+  clearLastExchange,
   goToMenu,
+  goToCollection,
   goToOptions,
   selectDifficulty,
   selectCardBack,

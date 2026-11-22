@@ -1,3 +1,4 @@
+import { type CollectionState, createEmptyCollection } from "@/collection";
 import {
   DEFAULT_BACKGROUND_PACK_ID,
   DEFAULT_CARD_BACK_ID,
@@ -24,6 +25,9 @@ import {
 
 export const STORAGE_KEY = "whisker-match:save";
 
+const MAX_OWNED_PAIR_IDS = 128;
+const MAX_PAWPRINTS = 999_999;
+
 export function createDefaultData(difficulty: DifficultyId = "classic"): PersistedData {
   const stats = Object.fromEntries(
     DIFFICULTY_IDS.map((id) => [id, createEmptyStats()]),
@@ -37,6 +41,7 @@ export function createDefaultData(difficulty: DifficultyId = "classic"): Persist
       backgroundPackId: DEFAULT_BACKGROUND_PACK_ID,
     },
     stats,
+    collection: createEmptyCollection(),
     activeGame: null,
   };
 }
@@ -89,9 +94,13 @@ function getStorage(): Storage | null {
 }
 
 function parsePersistedData(value: unknown): PersistedData | null {
-  // Version 1 only stored the difficulty. Migrate it in place instead of
-  // throwing away the player's records.
-  if (!isRecord(value) || (value.version !== 1 && value.version !== STORAGE_VERSION)) {
+  // Older saves only stored part of the record. Migrate them in place instead
+  // of throwing away the player's records; the output is always the current
+  // schema version.
+  if (
+    !isRecord(value) ||
+    (value.version !== 1 && value.version !== 2 && value.version !== STORAGE_VERSION)
+  ) {
     return null;
   }
 
@@ -112,8 +121,53 @@ function parsePersistedData(value: unknown): PersistedData | null {
         : defaults.settings.backgroundPackId,
     },
     stats: parseStats(value.stats, defaults.stats),
+    collection: parseCollection(value.collection),
     activeGame: parseActiveGame(value.activeGame),
   };
+}
+
+/**
+ * Validates the collection field without filtering ids against the catalog.
+ * Unknown ids are kept so a temporarily retired card does not erase progress.
+ */
+function parseCollection(value: unknown): CollectionState {
+  if (!isRecord(value)) {
+    return createEmptyCollection();
+  }
+
+  const ownedPairIds = parseOwnedPairIds(value.ownedPairIds);
+  if (ownedPairIds === null) {
+    return createEmptyCollection();
+  }
+
+  return {
+    ownedPairIds,
+    pawprints: isIntegerInRange(value.pawprints, 0, MAX_PAWPRINTS) ? value.pawprints : 0,
+  };
+}
+
+function parseOwnedPairIds(value: unknown): string[] | null {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value) || value.length > MAX_OWNED_PAIR_IDS) {
+    return null;
+  }
+
+  const ownedPairIds: string[] = [];
+  const seen = new Set<string>();
+
+  for (const pairId of value) {
+    if (typeof pairId !== "string" || pairId.length === 0 || seen.has(pairId)) {
+      return null;
+    }
+
+    seen.add(pairId);
+    ownedPairIds.push(pairId);
+  }
+
+  return ownedPairIds;
 }
 
 function parseStats(value: unknown, fallback: StatsByDifficulty): StatsByDifficulty {
@@ -278,6 +332,18 @@ function parseGameState(value: unknown): GameState | null {
     return null;
   }
 
+  // A resolving state is a visible mismatch; two cards of one pair would have
+  // matched immediately and cannot be resolved.
+  if (value.phase === "resolving") {
+    const selectedPairIds = new Set(
+      cards.filter((card) => selectedIds.includes(card.id)).map((card) => card.pairId),
+    );
+
+    if (selectedPairIds.size !== 2) {
+      return null;
+    }
+  }
+
   if (value.phase === "completed" && value.matchedPairs !== value.totalPairs) {
     return null;
   }
@@ -322,4 +388,8 @@ function isPositiveInteger(value: unknown): value is number {
 
 function isNonNegativeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function isIntegerInRange(value: unknown, min: number, max: number): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max;
 }
