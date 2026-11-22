@@ -13,8 +13,8 @@
   </a>
 </p>
 
-**Status:** Playable local MVP, under active development. Features, artwork, and save formats
-may change between updates.
+**Status:** Playable local MVP, collection & rewards v0.2.0 released. Features, artwork,
+and save formats may change between updates.
 
 ## Demo
 
@@ -29,6 +29,12 @@ backend is required.
 - Three board sizes: Relaxed (3 pairs), Classic (6 pairs), and Marathon (8 pairs).
 - Eight collectible cat cards, with a random subset drawn for every new game.
 - Card names shown under each piece of artwork.
+- **Collection & rewards (v0.2.0):** every completed board grants one random cat.
+  - New cats are added to the collection.
+  - Duplicates convert to **Lost Pawprints**.
+  - **Exchange 3 Lost Pawprints** for another random cat (duplicate returns 1 pawprint).
+- Dedicated **Collection** screen: progress, pawprint balance, 3:1 exchange, full keyboard
+  and screen-reader support.
 - Three selectable card backs: Classic, Black, and Green.
 - Background packs with morning, afternoon, evening, and midnight variants.
 - `Options > Personalization` for card backs, background packs, and time-of-day previews.
@@ -83,10 +89,11 @@ public/
 src/
   content/        # Card, card-back, and background catalogs
   game/           # Pure game logic, board sizes, and rules
+  collection/     # Pure collection rules: rewards, duplicates, and exchange
   persistence/    # localStorage adapter, schema validation, records
   store/          # Solid signals/store, timers, personalization, session actions
   components/
-    screens/      # Menu, options, and game screens
+    screens/      # Menu, options, collection, and game screens
     game/         # Board and card UI
   utils/          # Formatting and random-index helpers
   styles/         # Global pixel-art theme and responsive layout
@@ -124,9 +131,10 @@ Saved data lives under the `whisker-match:save` key in `localStorage`. It contai
 - the selected board size;
 - the selected card back and background pack;
 - per-board records (games won, best moves, best time);
+- **the cat collection: owned cards and Lost Pawprint balance;**
 - an optional unfinished game with its timer.
 
-Version 1 saves are migrated in place. Malformed or incompatible data is discarded and
+Version 1 and 2 saves are migrated in place. Malformed or incompatible data is discarded and
 replaced with safe defaults. The temporary time-of-day preview is intentionally not saved.
 
 ## Deployment
