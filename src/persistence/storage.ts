@@ -220,8 +220,8 @@ function parseActiveGame(value: unknown): PersistedGame | null {
 
   const state = parseGameState(value.state);
 
-  // A finished board is never persisted; a saved one is corrupt or stale.
-  if (!state || state.phase === "completed") return null;
+  // A finished or mid-mismatch board is never persisted; a saved one is corrupt or stale.
+  if (!state || state.phase === "completed" || state.phase === "resolving") return null;
 
   if (state.totalPairs !== DIFFICULTIES[value.difficulty].pairs) {
     return null;

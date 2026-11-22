@@ -128,7 +128,7 @@ describe("game store session flow", () => {
     expect(saved.stats.relaxed.bestTimeMs).not.toBeNull();
   });
 
-  it("resumes a saved game and completes a pending mismatch", async () => {
+  it("does not resume a resolving game — mismatches are not persisted", async () => {
     const firstStore = await loadStore();
     firstStore.startGame("relaxed");
 
@@ -143,13 +143,10 @@ describe("game store session flow", () => {
     vi.resetModules();
     const store = await loadStore();
 
-    expect(store.hasSavedGame()).toBe(true);
+    expect(store.hasSavedGame()).toBe(false);
     store.continueGame();
-    expect(store.game.phase).toBe("resolving");
-
-    vi.advanceTimersByTime(MISMATCH_DELAY_MS);
-
     expect(store.game.phase).toBe("idle");
+    expect(store.game.moves).toBe(0);
   });
 
   it("keeps elapsed time when the player leaves and resumes", async () => {

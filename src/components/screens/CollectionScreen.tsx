@@ -15,15 +15,15 @@ export const CollectionScreen: Component = () => {
 
   const exchangeHint = () => {
     if (isComplete()) {
-      return "Every cat is collected. The exchange is closed.";
+      return "Collection complete — nothing left to exchange.";
     }
 
     if (pawprints() < EXCHANGE_COST) {
       const missing = EXCHANGE_COST - pawprints();
-      return `Collect ${missing} more Lost Pawprint${missing === 1 ? "" : "s"} to exchange.`;
+      return `Need ${missing} more Lost Pawprint${missing === 1 ? "" : "s"} to exchange.`;
     }
 
-    return "Spend 3 Lost Pawprints for one random cat.";
+    return "Exchange 3 Lost Pawprints for a random cat.";
   };
 
   const exchangeResult = () => {
@@ -33,8 +33,8 @@ export const CollectionScreen: Component = () => {
     const name = getCatCard(event.pairId)?.name ?? "Mystery cat";
 
     return event.kind === "new-card"
-      ? `New cat collected: ${name}!`
-      : `Duplicate: ${name}. +1 Lost Pawprint.`;
+      ? `New cat added: ${name}!`
+      : `Duplicate (${name}) → +1 Lost Pawprint.`;
   };
 
   return (
@@ -60,7 +60,8 @@ export const CollectionScreen: Component = () => {
       </header>
 
       <p class="collection__intro">
-        Every completed board brings one cat home. Duplicates become Lost Pawprints.
+        Complete a board to earn a random cat. New cats join your collection; duplicates become Lost
+        Pawprints.
       </p>
 
       <div class="collection__summary">
@@ -82,7 +83,12 @@ export const CollectionScreen: Component = () => {
             const owned = () => ownedIds().has(card.pairId);
 
             return (
-              <li class="collection-card" classList={{ "collection-card--owned": owned() }}>
+              <li
+                class="collection-card"
+                classList={{ "collection-card--owned": owned() }}
+                tabindex={!owned() ? 0 : -1}
+                aria-label={owned() ? `${card.name}, collected` : `${card.name}, not collected`}
+              >
                 <div class="collection-card__art">
                   <img src={card.image} alt="" draggable={false} />
                   <Show when={!owned()}>
