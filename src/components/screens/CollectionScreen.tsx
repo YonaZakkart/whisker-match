@@ -82,7 +82,12 @@ export const CollectionScreen: Component = () => {
             const owned = () => ownedIds().has(card.pairId);
 
             return (
-              <li class="collection-card" classList={{ "collection-card--owned": owned() }}>
+              <li
+                class="collection-card"
+                classList={{ "collection-card--owned": owned() }}
+                tabindex={!owned() ? 0 : -1}
+                aria-label={owned() ? `${card.name}, collected` : `${card.name}, not collected`}
+              >
                 <div class="collection-card__art">
                   <img src={card.image} alt="" draggable={false} />
                   <Show when={!owned()}>
