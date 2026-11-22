@@ -161,7 +161,7 @@ describe("local persistence", () => {
     const data = loadData();
 
     expect(data.version).toBe(STORAGE_VERSION);
-    expect(data.activeGame?.state).toEqual(resolving);
+    expect(data.activeGame).toBeNull();
     expect(data.collection).toEqual({ ownedPairIds: [], pawprints: 0 });
   });
 
@@ -328,7 +328,7 @@ describe("local persistence", () => {
     expect(loaded?.elapsedMs).toBe(1_500);
   });
 
-  it("keeps a valid resolving save", () => {
+  it("rejects a resolving save", () => {
     const state = createInitialState(3, ["1", "2", "3"]);
     const first = state.cards[0];
     const second = state.cards.find((card) => card.pairId !== first.pairId)!;
@@ -338,7 +338,7 @@ describe("local persistence", () => {
     expect(resolving.phase).toBe("resolving");
     writeActiveGame({ difficulty: "relaxed", state: resolving, elapsedMs: 2_000, savedAt: 10 });
 
-    expect(loadData().activeGame?.state).toEqual(resolving);
+    expect(loadData().activeGame).toBeNull();
   });
 
   it("rejects active games with unpaired cards", () => {
@@ -467,5 +467,32 @@ describe("local persistence", () => {
     writeActiveGame({ difficulty: "relaxed", state, elapsedMs: 1_000, savedAt: 0 });
 
     expect(loadData().activeGame).toBeNull();
+  });
+});
+
+describe("saveData error handling", () => {
+  const createMockStorage = (setItemImpl: () => void): Storage => ({
+    length: 0,
+    clear: () => {},
+    getItem: () => null,
+    key: () => null,
+    removeItem: () => {},
+    setItem: setItemImpl,
+  });
+
+  it("returns false on QuotaExceededError", () => {
+    const mockStorage = createMockStorage(() => {
+      throw new DOMException("Quota exceeded", "QuotaExceededError");
+    });
+
+    expect(saveData(createDefaultData(), mockStorage)).toBe(false);
+  });
+
+  it("returns false on generic storage error", () => {
+    const mockStorage = createMockStorage(() => {
+      throw new Error("Storage unavailable");
+    });
+
+    expect(saveData(createDefaultData(), mockStorage)).toBe(false);
   });
 });
