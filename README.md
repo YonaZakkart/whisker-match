@@ -13,8 +13,15 @@
   </a>
 </p>
 
-**Status:** Playable local MVP, collection & rewards v0.2.0 released. Features, artwork,
+**Status:** Playable local MVP, collection & rewards v0.2.1 released. Features, artwork,
 and save formats may change between updates.
+
+## What's new in v0.2.1
+
+- **Accessibility fixes**: keyboard navigation in collection screen, visible focus states, improved contrast for unowned cards and exchange hints, `prefers-reduced-motion` support for reward animation.
+- **Text improvements**: clearer exchange hints (complete/insufficient/sufficient), refined reward messages ("New cat added!", "Duplicate → +1 Lost Pawprint"), more descriptive record badges ("New personal best — moves & time!", "New best: fewest moves!", "New best: fastest time!", "Game saved to records.").
+- **Storage robustness**: saves in `resolving` phase are now rejected during migration (prevents stale mid-mismatch states), `QuotaExceededError` handled gracefully in `saveData`, edge cases covered (duplicate/unknown IDs in collection, invalid pawprints, malformed stats).
+- **No schema change** — still `v3`; existing saves migrate automatically.
 
 ## Demo
 
