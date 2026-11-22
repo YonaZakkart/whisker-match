@@ -779,7 +779,7 @@ button {
 
 .collection-card__status {
   margin: 0;
-  color: rgba(255, 243, 214, 0.6);
+  color: var(--cream);
   font-family: var(--font-display);
   font-size: clamp(0.38rem, 1vw, 0.48rem);
   line-height: 1.6;
@@ -788,6 +788,11 @@ button {
 
 .collection-card--owned .collection-card__status {
   color: #a8e09b;
+}
+
+.collection-card:focus-visible {
+  outline: 3px solid var(--accent-glow);
+  outline-offset: 2px;
 }
 
 .collection__exchange {
@@ -817,7 +822,7 @@ button {
 
 .collection__hint {
   margin: 0.2rem 0 0;
-  color: rgba(255, 243, 214, 0.65);
+  color: var(--cream);
   font-size: 0.95rem;
 }
 
