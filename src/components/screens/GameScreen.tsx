@@ -94,12 +94,12 @@ export const GameScreen: Component = () => {
                 {(result) => (
                   <p class="result__badge">
                     {result().isBestMoves && result().isBestTime
-                      ? "New personal best!"
+                      ? "New personal best — moves & time!"
                       : result().isBestMoves
-                        ? "Fewest moves yet!"
+                        ? "New best: fewest moves!"
                         : result().isBestTime
-                          ? "Fastest run yet!"
-                          : "Saved to your records."}
+                          ? "New best: fastest time!"
+                          : "Game saved to records."}
                   </p>
                 )}
               </Show>
@@ -117,7 +117,7 @@ export const GameScreen: Component = () => {
                         draggable={false}
                       />
                       <p class="result__reward-text">
-                        {isNew ? "New cat collected!" : "Duplicate → +1 Lost Pawprint"}
+                        {isNew ? "New cat added!" : "Duplicate → +1 Lost Pawprint"}
                       </p>
                       <p class="result__reward-name">{card?.name}</p>
                     </div>
